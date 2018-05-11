@@ -1,0 +1,74 @@
+# logging-deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logging-deployment
+  namespace: logging-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logging
+  minReadySeconds: 30
+  progressDeadlineSeconds: 600
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        app: logging
+        version: v1
+    spec:
+      containers:
+      - name: logging
+        image: asia.gcr.io/possible-shishido/gke-log-service:0.0.1
+        env:
+        - name: JAVA_OPTS
+          value: -Dspring.profiles.active=k8s
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /api/health_check
+            port: 8080
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health_check
+            port: 8080
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          limits:
+            memory: "256Mi"
+          requests:
+            memory: "128Mi"
+---
+# logging-service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: logging
+  name: logging
+  namespace: logging-system
+spec:
+  ports:
+  - port: 80
+    name: http
+    targetPort: 8080
+  - port: 443
+    name: https
+    targetPort: 8080
+  selector:
+    app: logging
+  sessionAffinity: None
+#  type: ClusterIP
+  type: LoadBalancer
