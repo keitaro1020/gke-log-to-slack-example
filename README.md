@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![diagram](https://raw.githubusercontent.com/keitaro1020/gke-log-to-slack-example/webproxy/architecture.png)
+![diagram](https://raw.githubusercontent.com/keitaro1020/gke-log-to-slack-example/master/architecture.png)
 
 ## build
 
